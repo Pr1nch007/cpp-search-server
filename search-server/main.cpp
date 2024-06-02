@@ -54,7 +54,7 @@ struct Document {
 class SearchServer {
 public:
     void AddCount(const int& number){
-        document_count_=number;
+        document_count_ = number;
     }
     
     void SetStopWords(const string& text) {
@@ -65,10 +65,10 @@ public:
 
     void AddDocument(int document_id, const string& document) {
         const vector<string> words = SplitIntoWordsNoStop(document);
-        double TF=1.0/words.size();
+        double TF_one_word = 1.0/words.size();
 
         for (const string& word : words){
-            documents_[word][document_id]+=TF;
+            documents_[word][document_id] += TF_one_word;
         }
     }
 
@@ -92,7 +92,7 @@ private:
 
     set<string> stop_words_;
 
-    int document_count_=0;
+    int document_count_ = 0;
     
     bool IsStopWord(const string& word) const {
         return stop_words_.count(word) > 0;
@@ -102,7 +102,9 @@ private:
         vector<string> words;
         
         for (const string& word : SplitIntoWords(text)) {
-            if (!IsStopWord(word)) {
+            bool word_is_stop_words = IsStopWord(word);
+            
+            if (!word_is_stop_words) {
                 words.push_back(word);
             }
         }
@@ -135,9 +137,11 @@ struct QueryWord {
 
         for (const string& word : SplitIntoWords(text)) {
             const QueryWord query_word = ParseQueryWord(word);
-            
-            if (!query_word.is_stop) {
-                if (query_word.is_minus) {
+            bool query_word_is_stop_word = query_word.is_stop;
+            bool query_word_is_minus_word = query_word.is_minus;
+
+            if (!query_word_is_stop_word) {
+                if (query_word_is_minus_word) {
                     query.minus_words.insert(query_word.data);
                 } else {
                     query.plus_words.insert(query_word.data);
@@ -155,31 +159,31 @@ struct QueryWord {
     vector<Document> FindAllDocuments(const Query& query_words) const { 
         map <int, double> id_relev;
         
-        for(const string& word:query_words.plus_words){
-            if(documents_.count(word)==0){
+        for(const string& word : query_words.plus_words){
+            if(documents_.count(word) == 0){
                 continue;
             }
             
-            double IDF_word=IDF(word);
+            double IDF_word = IDF(word);
             
-            for(const auto& [id,TF]: documents_.at(word)){
-                id_relev[id]+=TF*IDF_word;
+            for(const auto& [id,TF] : documents_.at(word)){
+                id_relev[id] += TF*IDF_word;
                 }
             }
         
-        for(const string& word:query_words.minus_words){
-            if(documents_.count(word)==0){
+        for(const string& word : query_words.minus_words){
+            if(documents_.count(word) == 0){
                 continue;
             }
             
-            for(const auto& [id,TF]: documents_.at(word)){
+            for(const auto& [id,TF] : documents_.at(word)){
                     id_relev.erase(id);
                 }
             }
         
         vector<Document> matched_documents;
         
-        for(const auto& [key,value]:id_relev){
+        for(const auto& [key,value] : id_relev){
              matched_documents.push_back({key,value});
         }
         return matched_documents;
