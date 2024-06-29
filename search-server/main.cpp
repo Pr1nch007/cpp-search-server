@@ -11,7 +11,6 @@
 using namespace std;
 
 const int MAX_RESULT_DOCUMENT_COUNT = 5;
-const int EPSILON = 1e-6;
 
 string ReadLine() {
     string s;
@@ -93,16 +92,15 @@ public:
     explicit SearchServer(const string& stop_words_text)
         : SearchServer(
             SplitIntoWords(stop_words_text)){
-        if(!IsValidWord(stop_words_text)){
-            throw invalid_argument("stop words contain invalid characters"s);
-        }
     }
     
-    inline static constexpr int INVALID_DOCUMENT_ID = -1;
-    
     void AddDocument(int document_id, const string& document, DocumentStatus status, const vector<int>& ratings) {
-        if(document_id < 0 || documents_.count(document_id) || !IsValidWord(document)){
-            throw invalid_argument("incorrect document is being added"s);
+        if(document_id < 0){
+            throw invalid_argument("attempt to add a document with a negative id"s);
+        }
+        
+        if(documents_.count(document_id)){
+            throw invalid_argument("attempt to add a document with the id of a previously added document"s);
         }
         
         const vector<string> words = SplitIntoWordsNoStop(document);
@@ -123,7 +121,7 @@ public:
 
         sort(matched_documents.begin(), matched_documents.end(),
              [](const Document& lhs, const Document& rhs) {
-             if (abs(lhs.relevance - rhs.relevance) < 1e-6) {
+             if (abs(lhs.relevance - rhs.relevance) < numeric_limits<double>::epsilon()) {
                  return lhs.rating > rhs.rating;
              } else {
                  return lhs.relevance > rhs.relevance;
@@ -173,7 +171,7 @@ public:
     
     int GetDocumentId(int index) const{
         if(index >= 0 && index < static_cast<int>(documents_id_.size())){
-            return documents_id_[index];
+            return documents_id_.at(index);
         }else{
             throw out_of_range("the index of the transmitted document is out of the acceptable range"s);
         }
@@ -196,6 +194,9 @@ private:
     vector<string> SplitIntoWordsNoStop(const string& text) const {
         vector<string> words;
         for (const string& word : SplitIntoWords(text)) {
+            if(!IsValidWord(word)){
+            throw invalid_argument("presence of invalid characters in the document being added."s);
+        }
             if (!IsStopWord(word)) {
                 words.push_back(word);
             }
@@ -299,7 +300,6 @@ private:
     }
     
     static bool IsValidWord(const string& word) {
-        // A valid word must not contain special characters
         return none_of(word.begin(), word.end(), [](char c) {
             return c >= '\0' && c < ' ';
         });
