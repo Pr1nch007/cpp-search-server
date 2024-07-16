@@ -67,12 +67,8 @@ tuple<vector<string>, DocumentStatus> SearchServer::MatchDocument(const string& 
     }
 
 int SearchServer::GetDocumentId(int index) const{
-        if(index >= 0 && index < static_cast<int>(documents_id_.size())){
             return documents_id_.at(index);
-        }else{
-            throw out_of_range("the index of the transmitted document is out of the acceptable range"s);
-        }
-    }
+}
 
 bool SearchServer::IsStopWord(const string& word) const {
         return stop_words_.count(word) > 0;
@@ -114,8 +110,10 @@ SearchServer::QueryWord SearchServer::ParseQueryWord(string text) const {
             is_minus = true;
             text = text.substr(1);
         }
-        if(text[0] == '-') {
-            throw invalid_argument("The presence of more than one minus sign before the words"s);
+        if(!text.empty()){
+            if(text[0] == '-') {
+                throw invalid_argument("The presence of more than one minus sign before the words"s);
+            }
         }
         return {text, is_minus, IsStopWord(text)};
     }
