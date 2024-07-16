@@ -11,7 +11,8 @@ template <typename Iterator>
     public:
         IteratorRange(Iterator first, Iterator last):
         first_(first), last_(last), size_(distance(first_, last_))
-        {}
+        {
+        }
         Iterator begin() const{
         return first_;
         }
@@ -22,7 +23,8 @@ template <typename Iterator>
         return size_;
     }
     private:
-        Iterator first_, last_;
+        Iterator first_; 
+        Iterator last_;
         size_t size_;
     };
 
@@ -55,13 +57,6 @@ public:
 private:
     std::vector<IteratorRange<Iterator>> pages_;
 };
-
-
-    
-    std::ostream& operator<<(std::ostream& output, const Document& doc){
-    output << "{ document_id = " << doc.id << ", relevance = " << doc.relevance << ", rating = " << doc.rating << " }";
-    return output;
-    }
     
     template <typename Iterator>
     std::ostream& operator<<(std::ostream& output, const IteratorRange<Iterator>& page){
@@ -70,8 +65,3 @@ private:
         }
         return output;
     }
-
-template <typename Container>
-auto Paginate(const Container& c, size_t page_size) {
-    return Paginator(begin(c), end(c), page_size);
-}
