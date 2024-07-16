@@ -18,3 +18,6 @@ enum class DocumentStatus {
     BANNED,
     REMOVED,
 };
+
+std::ostream& operator<<(std::ostream& output, const Document& doc);
+    
